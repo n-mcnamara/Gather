@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import EventMarker from './EventMarker';
@@ -6,11 +6,9 @@ import { useNostrEvents } from '../hooks/useNostrEvents';
 import { LatLng } from 'leaflet';
 import { type TimeFilterValue, type MapFilter } from '../types';
 import { useGeolocation } from '../hooks/useGeolocation';
-import CenterMapControl from './CenterMapControl';
 import Modal from './Modal';
 import EventDetails from './EventDetails';
 import { NDKEvent } from '@nostr-dev-kit/ndk';
-import { useMyCommunities } from '../hooks/useMyCommunities';
 import MapController from './MapController';
 import { greenIcon } from '../utils/icons';
 import { useNDK } from '../context/NostrProvider';
@@ -29,10 +27,10 @@ interface MapViewProps {
   timeFilter: TimeFilterValue;
   mapFilter: MapFilter;
   onLaunchCreateEvent: (latlng: LatLng) => void;
+  communities: NDKEvent[];
 }
 
-export default function MapView({ timeFilter, mapFilter, onLaunchCreateEvent }: MapViewProps) {
-  const { communities } = useMyCommunities();
+export default function MapView({ timeFilter, mapFilter, onLaunchCreateEvent, communities }: MapViewProps) {
   const { user, login } = useNDK();
   
   const filter = useMemo(() => {
@@ -43,7 +41,9 @@ export default function MapView({ timeFilter, mapFilter, onLaunchCreateEvent }: 
         return `30023:${c.pubkey}:${dTag[1]}`;
       }).filter(Boolean);
 
-      if (communityPointers.length === 0) return null;
+      if (communityPointers.length === 0) {
+        return { kinds: [31923], '#a': ['no-communities'] };
+      }
       return { kinds: [31923], '#a': communityPointers as string[] };
     } else {
       return { kinds: [31923], "#t": ["gather"] };
@@ -54,6 +54,10 @@ export default function MapView({ timeFilter, mapFilter, onLaunchCreateEvent }: 
   const { coordinates } = useGeolocation();
   const [selectedEvent, setSelectedEvent] = useState<NDKEvent | null>(null);
   const [newEventPos, setNewEventPos] = useState<LatLng | null>(null);
+
+  useEffect(() => {
+    // This useEffect ensures the component re-renders when the events array changes.
+  }, [events]);
 
   const handleMapClick = (latlng: LatLng) => {
     if (!user) {
@@ -89,14 +93,13 @@ export default function MapView({ timeFilter, mapFilter, onLaunchCreateEvent }: 
 
   return (
     <>
-      <MapContainer center={initialCenter} zoom={13} className="w-full h-full z-0">
+      <MapContainer center={initialCenter} zoom={13} className="w-full h-full z-0" zoomControl={false}>
         <MapController center={userCenter} />
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
         />
         <MapClickHandler onMapClick={handleMapClick} />
-        <CenterMapControl />
         <UserMarker />
 
         {visibleEvents.map((ev) => (

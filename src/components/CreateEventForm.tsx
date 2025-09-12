@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { usePublishEvent } from '../hooks/usePublishEvent';
 import { NDKEvent } from '@nostr-dev-kit/ndk';
 

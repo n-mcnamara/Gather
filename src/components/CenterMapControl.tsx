@@ -1,4 +1,3 @@
-import React from 'react';
 import { useMap } from 'react-leaflet';
 import { LocateFixed } from 'lucide-react';
 
@@ -18,7 +17,7 @@ export default function CenterMapControl() {
   };
 
   return (
-    <div className="leaflet-top leaflet-right">
+    <div className="leaflet-bottom leaflet-right">
       <div className="leaflet-control leaflet-bar">
         <button onClick={handleCenter} title="Center on my location">
           <LocateFixed size={18} />

@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNDK } from '../context/NostrProvider';
-import { NDKUser } from '@nostr-dev-kit/ndk';
 
 // A simple cache to avoid re-fetching the graph on re-renders
 const socialGraphCache = {
@@ -49,7 +48,7 @@ export function useSocialGraph() {
   }, []);
 
   // Placeholder for the on-demand deep search
-  const findPath = async (targetPubkey: string) => {
+  const findPath = async (targetPubkey: string): Promise<number | null> => {
     // This is where the breadth-first search would go.
     // For now, we'll simulate a delay and a "not found" state.
     console.log(`Deep search triggered for ${targetPubkey}`);

@@ -31,9 +31,7 @@ export function useProximity(event: NDKEvent) {
     deleteEvent.kind = 5;
     deleteEvent.tags = [['e', checkInEventId]];
 
-    // Sign with the temporary, anonymous key
-    deleteEvent.signer = tempSigner;
-
+    await deleteEvent.sign(tempSigner);
     await deleteEvent.publish();
     checkedInEvents.delete(event.id);
     setIsCheckedIn(false);
@@ -46,7 +44,7 @@ export function useProximity(event: NDKEvent) {
       const dist = userCoords.distanceTo(eventCoords);
       setDistance(dist);
 
-      if (dist < 200) {
+      if (dist < 100) {
         setCanCheckIn(true);
       } else {
         setCanCheckIn(false);
@@ -66,9 +64,7 @@ export function useProximity(event: NDKEvent) {
     checkInEvent.content = "ping";
     checkInEvent.tags = [['a', `${event.kind}:${event.pubkey}:${dTag}`]];
     
-    // Sign with the temporary, anonymous key
-    checkInEvent.signer = tempSigner;
-    
+    await checkInEvent.sign(tempSigner);
     await checkInEvent.publish();
     checkedInEvents.set(event.id, checkInEvent.id);
     setIsCheckedIn(true);

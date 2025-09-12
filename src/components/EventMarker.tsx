@@ -1,4 +1,3 @@
-import React, { useMemo } from 'react';
 import { Marker, Popup } from 'react-leaflet';
 import { NDKEvent } from '@nostr-dev-kit/ndk';
 import { useEventAttendance } from '../hooks/useEventAttendance';

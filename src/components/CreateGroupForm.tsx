@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { usePublishGroup } from '../hooks/usePublishGroup';
 
-export default function CreateGroupForm() {
+interface CreateGroupFormProps {
+  refetchMyCommunities: () => void;
+}
+
+export default function CreateGroupForm({ refetchMyCommunities }: CreateGroupFormProps) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [isPrivate, setIsPrivate] = useState(false);
-  const publishGroup = usePublishGroup();
+  const publishGroup = usePublishGroup(refetchMyCommunities);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -14,11 +17,10 @@ export default function CreateGroupForm() {
       return;
     }
 
-    const success = await publishGroup({ name, description, isPrivate });
+    const success = await publishGroup({ name, description });
     if (success) {
       setName('');
       setDescription('');
-      setIsPrivate(false);
       alert('Community created successfully!');
     } else {
       alert('Failed to create community. Please try again.');
@@ -38,7 +40,7 @@ export default function CreateGroupForm() {
           className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
         />
       </div>
-      <div className="mb-2">
+      <div className="mb-4">
         <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
         <textarea
           id="description"
@@ -46,18 +48,6 @@ export default function CreateGroupForm() {
           onChange={(e) => setDescription(e.target.value)}
           className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
         />
-      </div>
-      <div className="flex items-center mb-4">
-        <input
-          id="isPrivate"
-          type="checkbox"
-          checked={isPrivate}
-          onChange={(e) => setIsPrivate(e.target.checked)}
-          className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-        />
-        <label htmlFor="isPrivate" className="ml-2 block text-sm text-gray-900">
-          Private (invite-only)
-        </label>
       </div>
       <button type="submit" className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700">
         Create Community

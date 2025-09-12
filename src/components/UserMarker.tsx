@@ -1,4 +1,3 @@
-import React from 'react';
 import { Marker, Circle } from 'react-leaflet';
 import { useGeolocation } from '../hooks/useGeolocation';
 import L from 'leaflet';

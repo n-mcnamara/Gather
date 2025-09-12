@@ -17,7 +17,7 @@ export function useCommunityName(aTag: string | undefined) {
       };
       const event = await ndk.fetchEvent(filter);
       if (event) {
-        setName(event.tagValue('title'));
+        setName(event.tagValue('title') || null);
       }
     };
 

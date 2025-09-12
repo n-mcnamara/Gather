@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { NDKEvent } from '@nostr-dev-kit/ndk';
 import { useEventChat } from '../hooks/useEventChat';
 import { useProfiles } from '../hooks/useProfiles';
@@ -6,7 +6,22 @@ import { NDKUser } from '@nostr-dev-kit/ndk';
 import { useKickedUsers } from '../hooks/useKickedUsers';
 
 const ChatMessage = ({ event }: { event: NDKEvent }) => {
-  // ... (same as before)
+  const user = useProfiles([event.pubkey])[0];
+
+  const Avatar = ({ user }: { user: NDKUser | undefined }) => {
+    const imageUrl = user?.profile?.image || `https://api.dicebear.com/8.x/identicon/svg?seed=${event.author.npub}`;
+    return <img src={imageUrl} alt={user?.profile?.name || 'avatar'} className="w-6 h-6 rounded-full" />;
+  };
+
+  return (
+    <div className="flex items-start space-x-2 text-sm">
+      <Avatar user={user} />
+      <div>
+        <span className="font-bold">{user?.profile?.name || event.author.npub.substring(0, 12)}</span>
+        <p className="text-gray-700">{event.content}</p>
+      </div>
+    </div>
+  );
 };
 
 export default function EventChat({ event }: { event: NDKEvent }) {
@@ -24,11 +39,7 @@ export default function EventChat({ event }: { event: NDKEvent }) {
   if (communityTag) {
       const [, pubkey, d] = communityTag[1].split(':');
       communityEvent.pubkey = pubkey;
-      // We need to find the *unique* d tag, not the app-specific one
-      const communityDTag = event.tags.find(t => t[0] === 'd' && t[1] !== 'gather-community');
-      if (communityDTag) {
-        communityEvent.tags = [['d', communityDTag[1]]];
-      }
+      communityEvent.tags = [['d', d]];
   }
   const kickedUsers = useKickedUsers(communityEvent);
   

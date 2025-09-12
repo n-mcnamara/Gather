@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNDK } from '../context/NostrProvider';
-import { NDKEvent } from '@nostr-dev-kit/ndk';
+import { NDKEvent, type NDKFilter, NDKKind } from '@nostr-dev-kit/ndk';
 
 export function useCommunityMods(community: NDKEvent) {
   const { ndk } = useNDK();
@@ -13,11 +13,12 @@ export function useCommunityMods(community: NDKEvent) {
     const communityPointer = `30023:${community.pubkey}:${communityId}`;
 
     const fetchMods = async () => {
-      const modEvent = await ndk.fetchEvent({
-        kinds: [30024],
+      const filter: NDKFilter = {
+        kinds: [30024 as NDKKind],
         authors: [community.pubkey], // Only the creator can define mods
         '#a': [communityPointer],
-      });
+      };
+      const modEvent = await ndk.fetchEvent(filter);
 
       if (modEvent) {
         const modPubkeys = modEvent.tags.filter(t => t[0] === 'p').map(t => t[1]);

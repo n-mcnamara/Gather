@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import CreateGroupForm from './CreateGroupForm';
 import { useListAllCommunities } from '../hooks/useListAllCommunities';
 import { useMyCommunities } from '../hooks/useMyCommunities';
@@ -47,7 +47,7 @@ export default function CommunitiesView() {
           </div>
         </div>
         <div>
-          <CreateGroupForm />
+          <CreateGroupForm refetchMyCommunities={refetch} />
         </div>
       </div>
     </div>

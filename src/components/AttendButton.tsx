@@ -1,4 +1,3 @@
-import React from 'react';
 import { useAttendEvent } from '../hooks/useAttendance';
 import { useUnattendEvent } from '../hooks/useUnattendEvent';
 import { NDKEvent } from '@nostr-dev-kit/ndk';

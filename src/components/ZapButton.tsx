@@ -1,4 +1,3 @@
-import React from 'react';
 
 export default function ZapButton({ event }: { event: any }) {
   const handleZap = () => {

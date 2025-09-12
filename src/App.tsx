@@ -1,4 +1,3 @@
-import React from 'react';
 import { NostrProvider } from './context/NostrProvider';
 import AppContent from './AppContent';
 

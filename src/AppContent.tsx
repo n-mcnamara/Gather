@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import MapView from './components/MapView';
 import { LoginButton } from './components/LoginButton';
 import TimeFilter from './components/TimeFilter';
@@ -32,14 +32,25 @@ export default function AppContent() {
     setNewEventPos(null);
   };
 
+  const handleFilterToggle = () => {
+    setMapFilter(currentFilter => {
+      const nextFilter = currentFilter === 'public' ? 'communities' : 'public';
+      if (nextFilter === 'communities' && myCommunities.length === 0) {
+        alert("You haven't joined any communities yet. Go to the Communities tab to find some!");
+        return 'public'; // Stay on public
+      }
+      return nextFilter;
+    });
+  };
+
   return (
     <div className="relative w-screen h-screen">
-      <div className="absolute top-4 left-4 z-50 flex flex-col space-y-2">
-        <LoginButton />
+      <div className="absolute top-4 left-4 z-50 flex flex-col space-y-2 safe-area-padding-top">
         {view === 'map' && (
           <>
+            <LoginButton />
             <TimeFilter filter={timeFilter} onFilterChange={setTimeFilter} />
-            <button onClick={() => setMapFilter(f => f === 'public' ? 'communities' : 'public')} className="p-2 bg-white rounded-md shadow-md hover:bg-gray-100 flex items-center space-x-2">
+            <button onClick={handleFilterToggle} className="p-2 bg-white rounded-md shadow-md hover:bg-gray-100 flex items-center space-x-2">
               {mapFilter === 'public' ? <Globe size={18} /> : <Users2 size={18} />}
               <span className="text-sm">{mapFilter === 'public' ? 'Public' : 'My Communities'}</span>
             </button>
@@ -47,7 +58,7 @@ export default function AppContent() {
         )}
       </div>
 
-      <div className="absolute top-4 right-4 z-50">
+      <div className="absolute top-4 right-4 z-50 safe-area-padding-top">
         <button onClick={() => setView(v => v === 'map' ? 'communities' : 'map')} className="p-2 bg-white rounded-md shadow-md hover:bg-gray-100">
           {view === 'map' ? <Users /> : <Map />}
         </button>
@@ -57,7 +68,8 @@ export default function AppContent() {
         <MapView 
           timeFilter={timeFilter} 
           mapFilter={mapFilter} 
-          onLaunchCreateEvent={handleLaunchCreateEvent} 
+          onLaunchCreateEvent={handleLaunchCreateEvent}
+          communities={myCommunities}
         />
       ) : (
         <CommunitiesView />

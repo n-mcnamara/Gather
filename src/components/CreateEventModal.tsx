@@ -1,4 +1,3 @@
-import React from 'react';
 import Modal from './Modal';
 import CreateEventForm from './CreateEventForm';
 import { NDKEvent } from '@nostr-dev-kit/ndk';

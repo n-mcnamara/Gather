@@ -1,4 +1,3 @@
-import React from 'react';
 import { useProfiles } from '../hooks/useProfiles';
 import { NDKUser } from '@nostr-dev-kit/ndk';
 import { useSocialGraph } from '../hooks/useSocialGraph';
@@ -39,7 +38,7 @@ export default function AttendeeList({ pubkeys, creatorPubkey }: AttendeeListPro
             </div>
             <DegreeBadge 
               degree={getDegree(user.pubkey)} 
-              onDeepSearch={() => findPath(user.pubkey)} 
+              onDeepSearch={async () => await findPath(user.pubkey)} 
             />
           </div>
         ))}

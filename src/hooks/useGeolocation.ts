@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Geolocation } from '@capacitor/geolocation';
 
 interface GeolocationState {
   coordinates: { lat: number; lng: number } | null;
@@ -12,26 +13,43 @@ export function useGeolocation() {
   });
 
   useEffect(() => {
-    if (!navigator.geolocation) {
-      setLocation(l => ({ ...l, error: 'Geolocation is not supported by your browser.' }));
-      return;
-    }
-
-    const onSuccess = (position: GeolocationPosition) => {
-      setLocation({
-        coordinates: {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        },
-        error: null,
-      });
+    const getCurrentPosition = async () => {
+      try {
+        // Use Capacitor's high-performance geolocation plugin
+        const position = await Geolocation.getCurrentPosition({
+          enableHighAccuracy: true,
+        });
+        setLocation({
+          coordinates: {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          },
+          error: null,
+        });
+      } catch (e: any) {
+        // Fallback to browser's geolocation if the plugin fails (e.g., on web)
+        if ('geolocation' in navigator) {
+          navigator.geolocation.getCurrentPosition(
+            (position: GeolocationPosition) => {
+              setLocation({
+                coordinates: {
+                  lat: position.coords.latitude,
+                  lng: position.coords.longitude,
+                },
+                error: null,
+              });
+            },
+            (error: GeolocationPositionError) => {
+              setLocation(l => ({ ...l, error: error.message }));
+            }
+          );
+        } else {
+          setLocation(l => ({ ...l, error: 'Geolocation is not supported.' }));
+        }
+      }
     };
 
-    const onError = (error: GeolocationPositionError) => {
-      setLocation(l => ({ ...l, error: error.message }));
-    };
-
-    navigator.geolocation.getCurrentPosition(onSuccess, onError);
+    getCurrentPosition();
   }, []);
 
   return location;

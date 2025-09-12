@@ -1,4 +1,3 @@
-import React from 'react';
 import { NDKEvent } from '@nostr-dev-kit/ndk';
 import AttendeeList from './AttendeeList';
 import EventChat from './EventChat';

@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 interface DegreeBadgeProps {
-  degree: 1 | 2 | '?' | number;
+  degree: 1 | 2 | '?';
   onDeepSearch: () => Promise<number | null>;
 }
 
 export default function DegreeBadge({ degree: initialDegree, onDeepSearch }: DegreeBadgeProps) {
-  const [degree, setDegree] = useState(initialDegree);
+  const [degree, setDegree] = useState<1 | 2 | '?' | number | 'Not found'>(initialDegree);
   const [isSearching, setIsSearching] = useState(false);
 
   const handleSearch = async () => {

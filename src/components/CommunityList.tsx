@@ -1,6 +1,6 @@
-import React from 'react';
 import { NDKEvent } from '@nostr-dev-kit/ndk';
 import { useJoinCommunity } from '../hooks/useJoinCommunity';
+import { useLeaveCommunity } from '../hooks/useLeaveCommunity';
 import { Lock } from 'lucide-react';
 
 interface CommunityListProps {
@@ -13,6 +13,42 @@ interface CommunityListProps {
 
 export default function CommunityList({ title, communities, refetch = () => {}, isJoined, onCommunityClick }: CommunityListProps) {
   const joinCommunity = useJoinCommunity(refetch);
+  const leaveCommunity = useLeaveCommunity(refetch);
+
+  const renderActionButton = (community: NDKEvent) => {
+    const alreadyJoined = isJoined ? isJoined(community) : false;
+
+    if (title === "My Communities") {
+      return (
+        <button 
+          onClick={() => leaveCommunity(community)}
+          className="px-3 py-1.5 text-white rounded-lg shadow-md text-sm bg-red-600 hover:bg-red-700"
+        >
+          Leave
+        </button>
+      );
+    }
+
+    if (alreadyJoined) {
+      return (
+        <button 
+          onClick={() => leaveCommunity(community)}
+          className="px-3 py-1.5 text-white rounded-lg shadow-md text-sm bg-red-600 hover:bg-red-700"
+        >
+          Leave
+        </button>
+      );
+    }
+
+    return (
+      <button 
+        onClick={() => joinCommunity(community)}
+        className="px-3 py-1.5 text-white rounded-lg shadow-md text-sm bg-green-600 hover:bg-green-700"
+      >
+        Join
+      </button>
+    );
+  };
 
   return (
     <div>
@@ -22,7 +58,6 @@ export default function CommunityList({ title, communities, refetch = () => {}, 
       ) : (
         <div className="space-y-2">
           {communities.map((community) => {
-            const alreadyJoined = isJoined ? isJoined(community) : false;
             const isPrivate = community.tags.some(t => t[0] === 'private');
             return (
               <div key={community.id} className="p-3 border rounded-lg flex justify-between items-center">
@@ -36,13 +71,7 @@ export default function CommunityList({ title, communities, refetch = () => {}, 
                   </div>
                   <p className="text-sm text-gray-600">{community.content}</p>
                 </div>
-                <button 
-                  onClick={() => joinCommunity(community)}
-                  disabled={alreadyJoined}
-                  className={`px-3 py-1.5 text-white rounded-lg shadow-md text-sm ${alreadyJoined ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'}`}
-                >
-                  {alreadyJoined ? 'Joined' : 'Join'}
-                </button>
+                {renderActionButton(community)}
               </div>
             )
           })}

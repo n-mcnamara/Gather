@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNDK } from '../context/NostrProvider';
-import { NDKEvent } from '@nostr-dev-kit/ndk';
+import { NDKEvent, type NDKFilter, NDKKind } from '@nostr-dev-kit/ndk';
 
 export function useKickedUsers(community: NDKEvent) {
   const { ndk } = useNDK();
@@ -13,11 +13,12 @@ export function useKickedUsers(community: NDKEvent) {
     const communityPointer = `30023:${community.pubkey}:${communityId}`;
 
     const fetchKicks = async () => {
-      const kickEvents = await ndk.fetchEvents({
-        kinds: [30024],
+      const filter: NDKFilter = {
+        kinds: [30024 as NDKKind],
         '#a': [communityPointer],
         '#action': ['kick'],
-      });
+      };
+      const kickEvents = await ndk.fetchEvents(filter);
 
       const pubkeys = new Set<string>();
       for (const event of kickEvents) {
