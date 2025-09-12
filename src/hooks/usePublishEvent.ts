@@ -1,6 +1,10 @@
 import { useNDK } from "../context/NostrProvider";
-import { NDKEvent } from "@nostr-dev-kit/ndk";
+import { NDKEvent, NDKRelaySet, NDKRelay } from "@nostr-dev-kit/ndk";
 import { v4 as uuidv4 } from 'uuid';
+import { findClosestRelay } from "../utils/geo";
+import allRelays from '../utils/geo-relays.json';
+
+const typedRelays: Record<string, { lat: number; lon: number }> = allRelays;
 
 interface EventDetails {
     title: string;
@@ -31,9 +35,9 @@ export function usePublishEvent() {
       ["d", eventId],
       ["title", title],
       ["summary", summary],
-      ["g", `${lat},${lon}`], // Use comma-separated coordinates
+      ["g", `${lat},${lon}`],
       ["starts", startTime.toString()],
-      ["ends", endTime.toString()],
+      ["ends",endTime.toString()],
       ["expires_at", endTime.toString()],
       ["t", "gather"],
     ];
@@ -43,7 +47,27 @@ export function usePublishEvent() {
     }
 
     try {
-      await ev.publish();
+      const closestRelayUrl = findClosestRelay(lat, lon);
+      
+      // Get the user's default relays from the pool
+      const relaysToPublishTo = new Set<NDKRelay>(ndk.pool.relays.values());
+
+      if (closestRelayUrl) {
+        // Get or create an NDKRelay instance for the closest relay and add it
+        const geoRelay = ndk.pool.getRelay(closestRelayUrl);
+        relaysToPublishTo.add(geoRelay);
+      }
+      
+      const relaySet = new NDKRelaySet(relaysToPublishTo, ndk);
+
+      const publicationRelays = Array.from(relaysToPublishTo).map(r => {
+        const geo = typedRelays[r.url] ? `(lat: ${typedRelays[r.url].lat}, lon: ${typedRelays[r.url].lon})` : '(geo not available)';
+        return `  - ${r.url} ${geo}`;
+      });
+      console.log(`Publishing event to the following relays:\n${publicationRelays.join('\n')}`);
+
+      // Use the original, working publish method on the event object
+      await ev.publish(relaySet);
       console.log("Published Event:", ev.encode());
 
       if (user) {
@@ -54,7 +78,7 @@ export function usePublishEvent() {
           ["a", `${ev.kind}:${user.pubkey}:${eventId}`],
           ["p", user.pubkey]
         ];
-        await rsvpEvent.publish();
+        await rsvpEvent.publish(relaySet);
         console.log("Published auto-RSVP for creator.");
       }
 

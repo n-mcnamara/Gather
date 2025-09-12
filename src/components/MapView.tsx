@@ -8,16 +8,18 @@ import { type TimeFilterValue, type MapFilter } from '../types';
 import { useGeolocation } from '../hooks/useGeolocation';
 import Modal from './Modal';
 import EventDetails from './EventDetails';
-import { NDKEvent } from '@nostr-dev-kit/ndk';
+import { NDKEvent, NDKRelaySet, NDKRelay } from '@nostr-dev-kit/ndk';
 import MapController from './MapController';
 import { greenIcon } from '../utils/icons';
 import { useNDK } from '../context/NostrProvider';
 import UserMarker from './UserMarker';
+import { findClosestRelay } from '../utils/geo';
+import CenterMapControl from './CenterMapControl';
 
-function MapClickHandler({ onMapClick }: { onMapClick: (latlng: LatLng) => void }) {
-  useMapEvents({
-    click(e) {
-      onMapClick(e.latlng);
+function MapEvents({ onMoveEnd }: { onMoveEnd: (center: LatLng) => void }) {
+  const map = useMapEvents({
+    moveend: () => {
+      onMoveEnd(map.getCenter());
     },
   });
   return null;
@@ -28,10 +30,30 @@ interface MapViewProps {
   mapFilter: MapFilter;
   onLaunchCreateEvent: (latlng: LatLng) => void;
   communities: NDKEvent[];
+  recenterRequest: number;
+  onRequestRecenter: () => void;
 }
 
-export default function MapView({ timeFilter, mapFilter, onLaunchCreateEvent, communities }: MapViewProps) {
-  const { user, login } = useNDK();
+export default function MapView({ timeFilter, mapFilter, onLaunchCreateEvent, communities, recenterRequest, onRequestRecenter }: MapViewProps) {
+  const { ndk, user, login } = useNDK();
+  const [geoRelayUrl, setGeoRelayUrl] = useState<string | null>(null);
+
+  const handleMoveEnd = (center: LatLng) => {
+    const closest = findClosestRelay(center.lat, center.lng);
+    if (closest && closest !== geoRelayUrl) {
+      console.log(`New closest relay found: ${closest}`);
+      setGeoRelayUrl(closest);
+    }
+  };
+
+  const dynamicRelaySet = useMemo(() => {
+    const relays = new Set<NDKRelay>(ndk.pool.relays.values());
+    if (geoRelayUrl) {
+      const geoRelay = ndk.pool.getRelay(geoRelayUrl);
+      relays.add(geoRelay);
+    }
+    return new NDKRelaySet(relays, ndk);
+  }, [ndk, geoRelayUrl]);
   
   const filter = useMemo(() => {
     if (mapFilter === 'communities') {
@@ -50,14 +72,10 @@ export default function MapView({ timeFilter, mapFilter, onLaunchCreateEvent, co
     }
   }, [mapFilter, communities]);
 
-  const events = useNostrEvents(filter);
+  const events = useNostrEvents(filter, dynamicRelaySet);
   const { coordinates } = useGeolocation();
   const [selectedEvent, setSelectedEvent] = useState<NDKEvent | null>(null);
   const [newEventPos, setNewEventPos] = useState<LatLng | null>(null);
-
-  useEffect(() => {
-    // This useEffect ensures the component re-renders when the events array changes.
-  }, [events]);
 
   const handleMapClick = (latlng: LatLng) => {
     if (!user) {
@@ -94,13 +112,14 @@ export default function MapView({ timeFilter, mapFilter, onLaunchCreateEvent, co
   return (
     <>
       <MapContainer center={initialCenter} zoom={13} className="w-full h-full z-0" zoomControl={false}>
-        <MapController center={userCenter} />
+        <MapController center={userCenter} recenterRequest={recenterRequest} />
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
         />
-        <MapClickHandler onMapClick={handleMapClick} />
+        <MapEvents onMoveEnd={handleMoveEnd} />
         <UserMarker />
+        <CenterMapControl onRequestRecenter={onRequestRecenter} />
 
         {visibleEvents.map((ev) => (
           <EventMarker key={ev.id} event={ev} onDetailsClick={handleDetailsClick} />

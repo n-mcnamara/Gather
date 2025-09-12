@@ -19,6 +19,7 @@ export default function AppContent() {
   const [newEventPos, setNewEventPos] = useState<LatLng | null>(null);
   const { user, login } = useNDK();
   const { communities: myCommunities } = useMyCommunities();
+  const [recenterRequest, setRecenterRequest] = useState(0);
 
   const handleLaunchCreateEvent = (latlng: LatLng) => {
     if (!user) {
@@ -37,7 +38,7 @@ export default function AppContent() {
       const nextFilter = currentFilter === 'public' ? 'communities' : 'public';
       if (nextFilter === 'communities' && myCommunities.length === 0) {
         alert("You haven't joined any communities yet. Go to the Communities tab to find some!");
-        return 'public'; // Stay on public
+        return 'public';
       }
       return nextFilter;
     });
@@ -70,6 +71,8 @@ export default function AppContent() {
           mapFilter={mapFilter} 
           onLaunchCreateEvent={handleLaunchCreateEvent}
           communities={myCommunities}
+          recenterRequest={recenterRequest}
+          onRequestRecenter={() => setRecenterRequest(c => c + 1)}
         />
       ) : (
         <CommunitiesView />

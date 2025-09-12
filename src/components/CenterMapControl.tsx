@@ -1,25 +1,14 @@
-import { useMap } from 'react-leaflet';
 import { LocateFixed } from 'lucide-react';
 
-export default function CenterMapControl() {
-  const map = useMap();
+interface CenterMapControlProps {
+  onRequestRecenter: () => void;
+}
 
-  const handleCenter = () => {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        map.flyTo([latitude, longitude], 14);
-      },
-      (error) => {
-        alert(`Error getting location: ${error.message}`);
-      }
-    );
-  };
-
+export default function CenterMapControl({ onRequestRecenter }: CenterMapControlProps) {
   return (
     <div className="leaflet-bottom leaflet-right">
       <div className="leaflet-control leaflet-bar">
-        <button onClick={handleCenter} title="Center on my location">
+        <button onClick={onRequestRecenter} title="Center on my location">
           <LocateFixed size={18} />
         </button>
       </div>
